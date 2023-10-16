@@ -133,24 +133,23 @@ valid_loader = DataLoader(dataset=valid_dataset,
 class MLP(torch.nn.Module):
 
     def __init__(self, num_features, num_hidden_1, 
-                 num_hidden_2, num_hidden_3, num_classes):
+                 num_hidden_2, num_hidden_3, num_hidden_4, num_classes):
         super(MLP, self).__init__()
         
         self.num_classes = num_classes
         
-        ### ADD ADDITIONAL LAYERS BELOW IF YOU LIKE
         self.linear_1 = torch.nn.Linear(num_features, num_hidden_1)
         self.bn1 = torch.nn.BatchNorm1d(self.linear_1.weight.size(0))
         self.linear_2 = torch.nn.Linear(num_hidden_1, num_hidden_2)
         self.bn2 = torch.nn.BatchNorm1d(self.linear_2.weight.size(0))
         self.linear_3 = torch.nn.Linear(num_hidden_2, num_hidden_3)
         self.bn3 = torch.nn.BatchNorm1d(self.linear_3.weight.size(0))
-        self.linear_out = torch.nn.Linear(num_hidden_3, num_classes)
+        self.linear_4 = torch.nn.Linear(num_hidden_3, num_hidden_4)
+        self.bn4 = torch.nn.BatchNorm1d(self.linear_4.weight.size(0))
+        self.linear_out = torch.nn.Linear(num_hidden_4, num_classes)
         
     def forward(self, x):
-        
-        ### MAKE SURE YOU CONNECT THE LAYERS PROPERLY IF YOU CHANGED
-        ### ANYTHNG IN THE __init__ METHOD ABOVE       
+            
         out = self.linear_1(x)
         out = self.bn1(out)
         out = F.relu(out)
@@ -159,7 +158,11 @@ class MLP(torch.nn.Module):
         out = F.relu(out)
         out = F.dropout(out, p=0.2, training=self.training)
         out = self.linear_3(out)
-        out = self.bn3(out)
+        out = self.bn3(out)   
+        out = F.relu(out)
+        out = F.dropout(out, p=0.2, training=self.training)
+        out = self.linear_4(out)
+        out = self.bn4(out)   
         out = F.relu(out)
         logits = self.linear_out(out)
         probas = F.softmax(logits, dim=1)
@@ -173,9 +176,10 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 model = MLP(num_features=600000,
-            num_hidden_1=75,
-            num_hidden_2=50,
-            num_hidden_3=25,
+            num_hidden_1=512,
+            num_hidden_2=256,
+            num_hidden_3=128,
+            num_hidden_4 = 64,
             num_classes=3)
 
 
